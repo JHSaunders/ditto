@@ -1,16 +1,27 @@
 import sys
 import argparse
+import tempfile
+import subprocess
+import os
 
 commands = {}
+
+default_command = None
 
 def register_command(cls):
     """Registers a command as usable."""
     commands[cls.command_name()] = cls
     return cls
 
+def set_default_command(cls):
+    """Sets the default command"""
+    global default_command
+    default_command = cls
+    return cls
+
 class Arg():
     """Defintion for an argument. Used to specify the arguments for a Command"""
-    def __init__(self,name,switch,prompt="",type=str,default=""):
+    def __init__(self,name,switch,prompt="",type=str,default="",large=False):
         self.name = name
         self.switch = switch
         self.prompt = prompt
@@ -18,6 +29,7 @@ class Arg():
             prompt =name
         self.type = type
         self.default = default
+        self.large=large
         
 class Command():
     """
@@ -52,9 +64,20 @@ class Command():
         while True:
             try:
                 arg = self.argument_map[name]        
-                raw_val = raw_input(arg.prompt+":")
-                val = arg.type(raw_val)
-                setattr(self.argument_values,arg.name, val)
+                if not arg.large:
+                    raw_val = raw_input(arg.prompt+":")               
+                else:
+                
+                    t = tempfile.NamedTemporaryFile(delete=False)
+                    try:
+                      editor = os.environ['EDITOR']
+                    except KeyError:
+                        editor = 'nano'
+                    subprocess.call([editor, t.name])
+                    raw_val = t.read()
+                    
+                val = arg.type(raw_val)    
+                setattr(self.argument_values,arg.name, val)    
                 return val
             except Exception as e:
                 print "Invalid value, please re-enter"
@@ -79,6 +102,7 @@ class Command():
     def command_name(cls):
         return cls.name
 
+@set_default_command
 @register_command
 class HelpCommand(Command):
     
@@ -97,9 +121,14 @@ def execute_command():
     with the command arguments following.
     """
     
-    command_name = sys.argv[1]
-    if command_name in commands:
-        command = commands[command_name](sys.argv[2:])
-        command.action()
-    else:
-        print "Unknown command"
+    if len(sys.argv)==1:
+        default_command([]).action()
+    else:    
+        command_name = sys.argv[1]
+        if command_name in commands:
+            command = commands[command_name](sys.argv[2:])
+            command.action()
+        else:
+            print( "Unknown command: {0}".format(sys.argv[1]) )
+            print("")
+            HelpCommand([]).action()

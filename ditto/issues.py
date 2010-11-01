@@ -25,7 +25,10 @@ __project = None
 def get_project():
     global __project
     if __project == None:
-        __project = Project(os.path.dirname(__file__))
+        root_dir = os.getcwd()
+        while not os.path.exists(os.path.join(root_dir,".issue-config.yaml")):
+            root_dir = os.sep.join(root_dir.split(os.sep)[:-1]) 
+        __project = Project(root_dir)
     return __project
                             
 class Project:
@@ -52,7 +55,6 @@ class Project:
                                 
         self._issues.sort(key=lambda issue: issue.get_creation_date())
         self.set_issue_names()
-        self._issues.sort(key=lambda issue: issue.name)
         
     def save_project(self):
         yaml.dump(self._yaml,
@@ -164,9 +166,9 @@ class Issue:
     
     def summary(self):
         if self.get_value("state","open")=="open":
-            return "{0}\t(o):{1:<30} e:{2}h".format(self.name,self.get_value("title"), self.get_value("estimate"))
+            return "{0}\t(o):{1:<70} e:{2}h".format(self.name,self.get_value("title"), self.get_value("estimate"))
         else:
-            return "{0}\t(c):{1:<30} e:{2}h\ta:{3}h".format(self.name,self.get_value("title"), self.get_value("estimate"),self.get_value("actual"))
+            return "{0}\t(c):{1:<70} e:{2}h\ta:{3}h".format(self.name,self.get_value("title"), self.get_value("estimate"),self.get_value("actual"))
 
 def component_name(name):
     if not get_project().attribute_contains("components",name):

@@ -33,7 +33,7 @@ class AddIssueCommand(Command):
     description= "Add a new issue."
     arguments = [
         Arg("title","t","Issue title"),
-        Arg("description","d","Issue description"),
+        Arg("description","d","Issue description",large=True),
         Arg("estimate","e","Estimated time(h)",float),
         Arg("component","c","Component",issues.component_name),
         Arg("release","r","Release",issues.release_name_or_blank),
@@ -103,12 +103,12 @@ class EstimateIssueCommand(Command):
         project.save_issue(issue)
 
 @register_command
-class CloseIssueCommand(Command):
+class OpenIssueCommand(Command):
     
     name = "open"
     description= "Open an issue."
     arguments = [
-        Arg("name","n","Issue to close:",issues.issue_name),      
+        Arg("name","n","Issue to open:",issues.issue_name),      
         ]
     
     def action(self):
@@ -140,7 +140,7 @@ class AddReleaseCommand(Command):
     description= "Add a new release"
     arguments = [
         Arg("name","n","Release name",issues.not_release_name),
-        Arg("description","d","Release description"),        
+        Arg("description","d","Release description",large=True),        
         ]
         
     def action(self):
@@ -221,9 +221,12 @@ class ReleaseSummaryCommand(Command):
         print("==== Descriptions ====")
         for issue in project._issues:
             if self.argument_values.release == issue.get_value("release",""):
-                print("===={id}==== \n**Title:{title}**\n\nDescription: {description} \n\n  * Status:{status} \n  * Estimate: {estimate} \n  * Actual:{actual}".format(id=issue.name,
-                    title=issue.get_value("title"),
-                    description=issue.get_value("description"),
+                print("==={id}===".format(id=issue.name))
+                print("**{title}**".format(title = issue.get_value("title")))
+                if issue.get_value("description")!="":
+                    print(issue.get_value("description"))
+                print("")
+                print("  * Status:{status} \n  * Estimate(h): {estimate} \n  * Actual(h):{actual}".format(
                     status = issue.get_value("state",""),
                     estimate = issue.get_value("estimate"),
                     actual = issue.get_value("actual","Not closed")))
