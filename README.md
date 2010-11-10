@@ -23,11 +23,11 @@ ditto is purely command line based, which makes it fast to use for programmers. 
 
 The important ones you will need are:
 
-ditto add-component : Adds a component to the project
-ditto add-release: Adds a release to the project
-ditto add: Add and issue
-ditto remove: Remove an issue
-ditto close: Closes an issue
-ditto open: Reopens a closed issue
-ditto list: Lists issues
-ditto release-summary: Creates a summary of a release either for the console or in dokuwiki syntax, this can be used to automatically publish to dokuwiki site on a git post-recieve hook.
+* ditto add-component : Adds a component to the project
+* ditto add-release: Adds a release to the project
+* ditto add: Add and issue
+* ditto remove: Remove an issue
+* ditto close: Closes an issue
+* ditto open: Reopens a closed issue
+* ditto list: Lists issues
+* ditto release-summary: Creates a summary of a release either for the console or in dokuwiki syntax, this can be used to automatically publish to dokuwiki site on a git post-recieve hook.
