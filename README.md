@@ -2,7 +2,8 @@ Ditto
 =====
 
 Yet another distributed issue tracker
-Author: James Saunders<james.h.saunders@gmail.com>
+
+Author: James Saunders \<james.h.saunders@gmail.com\>
 
 This is a python based issue tracker that operates in a similar manner to ditz or pitz. It is recoded completely to be very easy to extend and to be very light weight. The issue files are not compatible with either ditz or pitz. Currently this is very much a work in progress, it is tailored towards dokuwiki integration for the output.
 
