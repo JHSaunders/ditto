@@ -1,6 +1,8 @@
 #!/usr/bin/python
 from command import Command,Arg,execute_command,register_command,ValueList
 import issues
+import tempfile
+import subprocess
 import os
 
 @register_command
@@ -73,7 +75,7 @@ class CloseIssueCommand(Command):
     name = "close"
     description= "Close an issue."
     arguments = [
-        Arg("name","n","Issue to close:",issues.issue_name),
+        Arg("name","n","Issue to close",issues.issue_name),
         Arg("time","t","Actual time to complete issue(h)",float),
         ]
 
@@ -108,7 +110,7 @@ class OpenIssueCommand(Command):
     name = "open"
     description= "Open an issue."
     arguments = [
-        Arg("name","n","Issue to open:",issues.issue_name),
+        Arg("name","n","Issue to open",issues.issue_name),
         ]
 
     def action(self):
@@ -122,7 +124,7 @@ class OpenIssueCommand(Command):
 class AddComponentCommand(Command):
 
     name = "add-component"
-    description= "Add a new component"
+    description= "Add a new component."
     arguments = [
         Arg("name","n","Component name",issues.not_component_name),
         ]
@@ -137,7 +139,7 @@ class AddComponentCommand(Command):
 class AddReleaseCommand(Command):
 
     name = "add-release"
-    description= "Add a new release"
+    description= "Add a new release."
     arguments = [
         Arg("name","n","Release name",issues.not_release_name),
         Arg("description","d","Release description",large=True),
@@ -155,7 +157,7 @@ class AddReleaseCommand(Command):
 class AssignReleaseCommand(Command):
 
     name = "assign-release"
-    description= "Assign an issue to a release"
+    description= "Assign an issue to a release."
     arguments = [
         Arg("issue","i","Issue to assign",issues.issue_name),
         Arg("release","r","Release to assign to",issues.release_name_or_blank),
@@ -169,9 +171,35 @@ class AssignReleaseCommand(Command):
         project.save_issue(issue)
 
 @register_command
+class DescribeReleaseCommand(Command):
+
+    name = "release-description"
+    description= "Edit a releases description."
+    arguments = [
+        Arg("release","r","Release to describe",issues.release_name_or_blank),
+        ]
+
+    def action(self):
+        project = issues.get_project()
+        self.cond_prompt_arg("release")
+        release = project.get_release(self.argument_values.release)
+        t = tempfile.NamedTemporaryFile(delete=False)
+        t.write(release.get_value('description'))
+        t.close()
+        try:
+            editor = os.environ['EDITOR']
+        except KeyError:
+            editor = 'nano'                                    
+        subprocess.call([editor, t.name])
+        t = open(t.name)
+        raw_val = t.read()
+        release.set_value('description',raw_val)
+        project.save_release(release)
+
+@register_command
 class ListIssuesCommand(Command):
     name = "list"
-    description= "List all issues"
+    description= "List all issues."
 
     arguments = [
         Arg("display","d","issues to display (a) all,(o) open,(c) closed"),
@@ -191,7 +219,7 @@ class ListIssuesCommand(Command):
 @register_command
 class ReleaseSummaryCommand(Command):
     name = "release-summary"
-    description= "Create a summary of a release"
+    description= "Create a summary of a release."
 
     arguments = [
         Arg("release","r","show only issues for a release",issues.release_name_or_blank),
@@ -254,7 +282,6 @@ class ReleaseSummaryCommand(Command):
         if self.argument_values.release!="":
             release = project.get_release(self.argument_values.release)
             print("Release: {0}".format(release.name()))
-
         else:
             print("{0}".format("Unassigned Issues:"))
 
@@ -271,6 +298,8 @@ class ReleaseSummaryCommand(Command):
             print("  * Actual Work Time: {0}h".format(stats[2]))
             print("  * Estimated Remaining Work: {0}h".format(stats[1]))
             print("  * Probable Remaining Time: {0}h".format(stats[3]))
+
+
 
 @register_command
 class ListReleasesCommand(Command):

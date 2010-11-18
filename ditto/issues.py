@@ -150,7 +150,14 @@ class Issue:
         self._guid = kwargs["guid"]
         self._yaml = kwargs["yaml"]
         self._project = kwargs["project"]
-
+        self.properties = {
+            "title": str,
+            "description": str,
+            "release": release_name,
+            "component": component_name,
+            "state": issue_state_name,
+            }
+    
 
     def set_value(self,key,value):
         self._yaml.append({"key":key,"value":str(value),"user":self._project.user_string(),"timestamp":datetime.now()})
@@ -204,6 +211,11 @@ class Issue:
         else:
             return "\033[31m{0}\t(c):{1:<70} e:{2}h\ta:{3}h\033[0m".format(self.name,self.title, self.estimate,self.actual)
 
+def issue_state_name(name):
+    if name not in ["open","closed"]:
+        raise ValueError()
+    return name
+    
 def component_name(name):
     if not get_project().attribute_contains("components",name):
         raise ValueError()
@@ -233,8 +245,12 @@ class Release:
     def __init__(self, *args, **kwargs):
         self._guid = kwargs["guid"]
         self._yaml = kwargs["yaml"]
-        self._project = kwargs["project"]
-
+        self._project = kwargs["project"]        
+        self.properties = {
+            "name": str,
+            "description": str,
+            }
+        
     def name(self):
         return self._yaml["name"]
 

@@ -76,7 +76,6 @@ class Command():
                 if not arg.large:
                     raw_val = raw_input(arg.prompt+":")
                 else:
-
                     t = tempfile.NamedTemporaryFile(delete=False)
                     try:
                       editor = os.environ['EDITOR']
