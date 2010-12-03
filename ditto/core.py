@@ -166,7 +166,7 @@ class AssignReleaseCommand(Command):
     def action(self):
         project = issues.get_project()
         self.prompt_all_args()
-        issue = project.get_issue(self.argument_values.name)
+        issue = project.get_issue(self.argument_values.issue)
         issue.set_value("release",self.argument_values.release)
         project.save_issue(issue)
 
@@ -189,7 +189,7 @@ class DescribeReleaseCommand(Command):
         try:
             editor = os.environ['EDITOR']
         except KeyError:
-            editor = 'nano'                                    
+            editor = 'nano'
         subprocess.call([editor, t.name])
         t = open(t.name)
         raw_val = t.read()
