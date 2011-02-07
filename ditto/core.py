@@ -219,6 +219,7 @@ class ListIssuesCommand(Command):
 @register_command
 class ReleaseSummaryCommand(Command):
     name = "release-summary"
+    alternate_names = ["rs"]
     description= "Create a summary of a release."
 
     arguments = [

@@ -11,6 +11,8 @@ default_command = None
 def register_command(cls):
     """Registers a command as usable."""
     commands[cls.command_name()] = cls
+    for name in cls.alternate_command_names():
+        commands[name] = cls
     return cls
 
 def set_default_command(cls):
@@ -51,6 +53,7 @@ class Command():
     """
 
     name="no_name"
+    alternate_names = []
     description= ""
     arguments = []
 
@@ -110,6 +113,10 @@ class Command():
     def command_name(cls):
         return cls.name
 
+    @classmethod
+    def alternate_command_names(cls):
+        return cls.alternate_names
+
 @set_default_command
 @register_command
 class HelpCommand(Command):
@@ -121,7 +128,11 @@ class HelpCommand(Command):
         print "Available Commands:"
 
         for command, cls in commands.items():
-            print "  {0:<20}: {1}".format(command,cls.description)
+            if command == cls.command_name():
+                name = command
+                if len(cls.alternate_command_names())>0:
+                    name+=" ("+"".join(cls.alternate_command_names())+")"
+                print "  {0:<30}: {1}".format(name,cls.description)
 
 def execute_command():
     """
