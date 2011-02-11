@@ -6,9 +6,9 @@ from datetime import datetime
 
 warnings.simplefilter('ignore')
 
-def create_project(folder,project_name,name,email):
+def create_project(folder,project_name,username,name,email):
     config_stream = file('.issue-config.yaml', 'w')
-    yaml.dump({"folder":folder,"name":name,"email":email},config_stream,default_flow_style=False)
+    yaml.dump({"folder":folder,"username":username,"name":name,"email":email},config_stream,default_flow_style=False)
     config_stream.close()
 
     try:
@@ -17,7 +17,7 @@ def create_project(folder,project_name,name,email):
         project_stream = file('%s/project.yaml'%folder, 'w')
         yaml.dump({"project_name":project_name,"started":datetime.now()},project_stream,default_flow_style=False)
         project_stream.close()
-        print("new project started")
+        print("New project started")
     except Exception as e:
         pass
 
@@ -78,7 +78,7 @@ class Project:
             if component not in component_counts:
                 component_counts[component]=0
             component_counts[component]+=1
-            issue.name = "%s-%s"%(component,component_counts[component])
+            issue.name = "%s%s"%(component[0:2],component_counts[component])
 
     def add_issue(self):
         guid = str(uuid.uuid1())
@@ -99,7 +99,7 @@ class Project:
             self._issues.remove(issue)
 
     def user_string(self):
-        return "%s <%s>"%(self._config["name"],self._config["email"])
+        return "%s (%s) <%s>"%(self._config["username"],self._config["name"],self._config["email"])
 
     def get_value(self,key):
         return self._yaml.get(key,None)
@@ -205,11 +205,17 @@ class Issue:
         component = self.get_value("component",default="")
         return component if get_project().attribute_contains("component",component) else ""
 
+    @property
+    def owner(self):
+        owner = self.get_value("owner",default="")
+        return owner
+
     def summary(self):
+        owner = "({0:8})".format(self.owner) if self.owner!="" else "{0:10}".format("")
         if self.state=="open":
-            return "\033[0m{0}\t(o):{1:<70} e:{2}h\033[0m".format(self.name,self.title, self.estimate)
+            return "\033[0m{0}\t(o):{1:<70} {2} e:{3}h\033[0m".format(self.name,self.title, owner, self.estimate)
         else:
-            return "\033[31m{0}\t(c):{1:<70} e:{2}h\ta:{3}h\033[0m".format(self.name,self.title, self.estimate,self.actual)
+            return "\033[31m{0}\t(c):{1:<70} {2} e:{3}h\ta:{4}h\033[0m".format(self.name,self.title, owner, self.estimate,self.actual)
 
 def issue_state_name(name):
     if name not in ["open","closed"]:
@@ -266,17 +272,25 @@ class Release:
     @property
     def description(self):
         return self.get_value("description","")
+    
+    def owners(self):
+        owners = set()
+        for issue in self.issues():
+            if issue.owner!="":
+                owners.add(issue.owner)
+        return owners
 
-    def statistics(self):
+    def statistics(self,owner="-"):
         est_done = 0
         est_undone = 0
         actual_done = 0
         for issue in self.issues():
-            if issue.state == "closed":
-                est_done += float(issue.get_value("estimate",0))
-                actual_done += float(issue.actual)
-            else:
-                est_undone += float(issue.estimate)
+            if owner=="-" or issue.owner == owner:
+                if issue.state == "closed":
+                    est_done += float(issue.get_value("estimate",0))
+                    actual_done += float(issue.actual)
+                else:
+                    est_undone += float(issue.estimate)
 
         if est_done>0:
             actual_undone = actual_done / est_done * est_undone

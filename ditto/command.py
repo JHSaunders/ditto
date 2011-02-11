@@ -9,7 +9,7 @@ commands = {}
 default_command = None
 
 def register_command(cls):
-    """Registers a command as usable."""
+    """Registers a command as usable"""
     commands[cls.command_name()] = cls
     for name in cls.alternate_command_names():
         commands[name] = cls
@@ -22,7 +22,7 @@ def set_default_command(cls):
     return cls
 
 class Arg():
-    """Defintion for an argument. Used to specify the arguments for a Command"""
+    """Definition for an argument. Used to specify the arguments for a Command"""
     def __init__(self,name,switch,prompt="",type=str,default="",large=False):
         self.name = name
         self.switch = switch
@@ -49,7 +49,7 @@ class Command():
     inherit from this and implement the action function as well as set up the
     name,description and arguments fields.
 
-    The arguments field is a list if Arg objects.
+    The arguments field is a list of Arg objects.
     """
 
     name="no_name"

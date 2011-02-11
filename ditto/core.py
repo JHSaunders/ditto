@@ -11,6 +11,7 @@ class Init(Command):
     description= "Initializes a new project."
     arguments = [
         Arg("folder","f","Folder to store issues in"),
+        Arg("username","u","user name (unique and short)"),
         Arg("name","n","Full name"),
         Arg("email","e","Email Address"),
         Arg("project","p","Project Name"),
@@ -18,6 +19,7 @@ class Init(Command):
 
     def action(self):
         self.cond_prompt_arg("folder")
+        self.cond_prompt_arg("username")
         self.cond_prompt_arg("name")
         self.cond_prompt_arg("email")
 
@@ -26,6 +28,7 @@ class Init(Command):
 
         issues.create_project(self.argument_values.folder,
         self.argument_values.project,
+        self.argument_values.username,
         self.argument_values.name,
         self.argument_values.email)
 
@@ -171,6 +174,23 @@ class AssignReleaseCommand(Command):
         project.save_issue(issue)
 
 @register_command
+class AssignOwnerCommand(Command):
+
+    name = "owner"
+    description= "Assign an issue an owner."
+    arguments = [
+        Arg("issue","i","Issue to assign",issues.issue_name),
+        Arg("owner","o","Owner to assign to",str),
+        ]
+
+    def action(self):
+        project = issues.get_project()
+        self.prompt_all_args()
+        issue = project.get_issue(self.argument_values.issue)
+        issue.set_value("owner",self.argument_values.owner)
+        project.save_issue(issue)
+
+@register_command
 class DescribeReleaseCommand(Command):
 
     name = "release-description"
@@ -241,13 +261,22 @@ class ReleaseSummaryCommand(Command):
             print("====== {0} ======".format(release.name()))
 
             stats = release.statistics()
-
+            print("\n**Totals:**")
             print("  * Total Estimated Work: {0}h".format(stats[0]+stats[1]))
             print("  * Estimated Work Completed: {0}h".format(stats[0]))
             print("  * Actual Work Time: {0}h".format(stats[2]))
             print("  * Estimated Remaining Work: {0}h".format(stats[1]))
             print("  * Probable Remaining Time: {0}h".format(stats[3]))
 
+            for owner in release.owners():
+                stats = release.statistics(owner)
+                print("\n**{0}:**".format(owner))
+                print("  * Total Estimated Work: {0}h".format(stats[0]+stats[1]))
+                print("  * Estimated Work Completed: {0}h".format(stats[0]))
+                print("  * Actual Work Time: {0}h".format(stats[2]))
+                print("  * Estimated Remaining Work: {0}h".format(stats[1]))
+                print("  * Probable Remaining Time: {0}h".format(stats[3]))
+                
             print("===== Description =====")
             print(release.description)
         else:
@@ -263,7 +292,7 @@ class ReleaseSummaryCommand(Command):
                     status = issue.state,
                     estimate = issue.estimate,
                     actual = issue.actual if issue.state == "closed" else " "))
-
+        
         print("==== Descriptions ====")
         for issue in project._issues:
             if self.argument_values.release == issue.release:
@@ -293,15 +322,23 @@ class ReleaseSummaryCommand(Command):
         if self.argument_values.release!="":
             release = project.get_release(self.argument_values.release)
             stats = release.statistics()
-            print("\nStatistics:")
+            print("\nOverall:")
             print("  * Total Estimated Work: {0}h".format(stats[0]+stats[1]))
             print("  * Estimated Work Completed: {0}h".format(stats[0]))
             print("  * Actual Work Time: {0}h".format(stats[2]))
             print("  * Estimated Remaining Work: {0}h".format(stats[1]))
             print("  * Probable Remaining Time: {0}h".format(stats[3]))
+        
+            for owner in release.owners():
+                stats = release.statistics(owner)
+                print("\n{0}:".format(owner))
+                print("  * Total Estimated Work: {0}h".format(stats[0]+stats[1]))
+                print("  * Estimated Work Completed: {0}h".format(stats[0]))
+                print("  * Actual Work Time: {0}h".format(stats[2]))
+                print("  * Estimated Remaining Work: {0}h".format(stats[1]))
+                print("  * Probable Remaining Time: {0}h".format(stats[3]))
 
-
-
+            
 @register_command
 class ListReleasesCommand(Command):
     name = "list-releases"
