@@ -124,6 +124,27 @@ class OpenIssueCommand(Command):
         project.save_issue(issue)
 
 @register_command
+class EditIssueCommand(Command):
+
+    name = "edit-issue"
+    description= "Edit a Issue "
+    arguments = [
+        Arg("name","n","Issue to edit:",issues.issue_name),
+        ]
+
+    def action(self):
+        project = issues.get_project()
+        self.cond_prompt_arg("name")
+        issue = project.get_issue(self.argument_values.name)
+        file_name = issue._filename
+        try:
+            editor = os.environ['EDITOR']
+        except KeyError:
+            editor = 'nano'
+
+        subprocess.call([editor, file_name])
+
+@register_command
 class AddComponentCommand(Command):
 
     name = "add-component"
@@ -224,17 +245,21 @@ class ListIssuesCommand(Command):
     arguments = [
         Arg("display","d","issues to display (a) all,(o) open,(c) closed"),
         Arg("release","r","show only issues for a release",issues.release_name_or_blank),
+        Arg("owner","o","show only issues for an owner",str),
         ]
 
     def action(self):
         display = self.argument_values.display
         if display == None:
             display = 'o'
+        owner = self.argument_values.owner
+        
         project = issues.get_project()
         for issue in project._issues:
             if self.argument_values.release == None or self.argument_values.release == issue.release:
                 if display =="a" or (issue.state.lower()[0] == display.lower()[0]):
-                    print issue.summary()
+                    if owner == None or owner.lower() == issue.owner.lower():
+                        print issue.summary()
 
 @register_command
 class ReleaseSummaryCommand(Command):

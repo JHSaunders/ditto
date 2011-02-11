@@ -45,6 +45,7 @@ class Project:
                 guid = fname[6:-5]
                 self._issues.append(Issue(project=self
                     ,guid=guid
+                    ,filename = os.path.join(root_folder,self._issue_folder,fname)
                     ,yaml=yaml.load(file(os.path.join(root_folder,self._issue_folder,fname)))))
             elif fname.startswith("release-") and fname.endswith(".yaml"):
                 guid = fname[8:-5]
@@ -150,6 +151,7 @@ class Issue:
         self._guid = kwargs["guid"]
         self._yaml = kwargs["yaml"]
         self._project = kwargs["project"]
+        self._filename = kwargs["filename"]
         self.properties = {
             "title": str,
             "description": str,
