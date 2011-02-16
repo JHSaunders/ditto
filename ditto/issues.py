@@ -83,7 +83,7 @@ class Project:
 
     def add_issue(self):
         guid = str(uuid.uuid1())
-        issue = Issue(project=self,guid=guid,yaml=[])
+        issue = Issue(project=self,guid=guid,yaml=[],filename="")
         self._issues.append(issue)
         return issue
 

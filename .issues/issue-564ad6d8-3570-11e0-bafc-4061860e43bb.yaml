@@ -1,0 +1,48 @@
+- key: title
+  timestamp: 2011-02-11 01:49:02.147240
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: Add ticket owners
+- key: description
+  timestamp: 2011-02-11 01:49:02.147277
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: ''
+- key: component
+  timestamp: 2011-02-11 01:49:02.147294
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: ditto
+- key: estimate
+  timestamp: 2011-02-11 01:49:02.147324
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: '2.0'
+- key: release
+  timestamp: 2011-02-11 01:49:02.147341
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: ''
+- key: state
+  timestamp: 2011-02-11 01:49:02.147361
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: open
+- key: owner
+  timestamp: 2011-02-11 01:56:56.268763
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: james
+- key: state
+  timestamp: 2011-02-11 01:57:11.772782
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: closed
+- key: actual
+  timestamp: 2011-02-11 01:57:11.772831
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: '1.0'
+- key: release
+  timestamp: 2011-02-11 01:58:07.613321
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: r1
+- key: owner
+  timestamp: 2011-02-11 01:59:18.204660
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: ''
+- key: owner
+  timestamp: 2011-02-11 02:14:12.664820
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: james

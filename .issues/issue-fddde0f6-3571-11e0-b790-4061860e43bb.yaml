@@ -1,0 +1,40 @@
+- key: title
+  timestamp: 2011-02-11 02:00:52.787105
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: B
+- key: description
+  timestamp: 2011-02-11 02:00:52.787143
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: ''
+- key: component
+  timestamp: 2011-02-11 02:00:52.787163
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: ditto
+- key: estimate
+  timestamp: 2011-02-11 02:00:52.787192
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: '1.0'
+- key: release
+  timestamp: 2011-02-11 02:00:52.787208
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: r1
+- key: state
+  timestamp: 2011-02-11 02:00:52.787226
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: open
+- key: state
+  timestamp: 2011-02-11 02:02:10.356994
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: closed
+- key: actual
+  timestamp: 2011-02-11 02:02:10.357043
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: '0.1'
+- key: state
+  timestamp: 2011-02-11 02:02:47.064154
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: open
+- key: owner
+  timestamp: 2011-02-11 02:14:24.800886
+  user: james (James Saunders) <james.h.saunders@gmail.com>
+  value: james
