@@ -14,10 +14,14 @@ Installation uses distutils (I think), to run use:
     python setup.py install
 it requires PyYaml and argparse
 
+To do a development install use:
+    python setup.py develop
+This is a great option if you are making changes or often pull down the new version since it will only create symlinks to files in your development working tree so changes you make immediately affect the command line.
+
 Overview
 --------
 
-Ditto manages issues. Issues have a title, description and estimated time to completion. Issues are automatically given names which are of the form [component]-[#] where # is an increasing number.These names are variable but should be used in the ditto commands. Issues are associated with components which are specific sections of a project. Issues are also associated with a release. A release is a collection of issues that must be completed for some feature to be implemented, the equivalent of a sprint in the agile world. As previously stated, issues have time estimates, and when closed are given an actual time to completion.
+Ditto manages issues. Issues have a title, description and estimated time to completion. Issues are automatically given names which are of the form [component][#] where # is an increasing number.These names are variable but should be used in the ditto commands. Issues are associated with components which are specific sections of a project. Issues are also associated with a release. A release is a collection of issues that must be completed for some feature to be implemented, the equivalent of a sprint in the agile world. As previously stated, issues have time estimates, and when closed are given an actual time to completion.
 
 ditto is purely command line based, which makes it fast to use for programmers. To use ditto you first have to 'ditto init', this will ask for your details and the location you wish to store ditto issues (usually .issues). If an issues folder and a project already exists the project will not be overwritten but simply linked to. Run this command in the root folder of your repository. Once that is done you can run 'ditto help' for a list of available commands.
 
