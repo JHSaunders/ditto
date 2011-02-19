@@ -27,6 +27,8 @@ def get_project():
     if __project == None:
         root_dir = os.getcwd()
         while not os.path.exists(os.path.join(root_dir,".issue-config.yaml")):
+            if len(root_dir) == 0:
+                raise Exception("Couldn't find .issue-config.yaml in %s or its parents" % root_dir)
             root_dir = os.sep.join(root_dir.split(os.sep)[:-1])
         __project = Project(root_dir)
     return __project
