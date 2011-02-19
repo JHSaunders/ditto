@@ -3,6 +3,7 @@ import argparse
 import tempfile
 import subprocess
 import os
+import issues
 
 commands = {}
 
@@ -56,18 +57,31 @@ class Command():
     alternate_names = []
     description= ""
     arguments = []
+    global_arguments = [
+        Arg("issues_config_dir","z","Path to folder containing .issue-config.yaml")
+        ]
 
     def __init__(self,argv):
         parser = self.setup_args()
+
+        self.setup_global_args()
+
         args = parser.parse_args(argv)
         self.argument_values = args
 
+    def setup_global_args(self):
+        """a bit hacky, need to set the issues config folder before
+        the args parser tries to call anything."""
+        for i in range(len(sys.argv)):
+            if sys.argv[i] == "-z":
+                issues.set_issues_config_dir(sys.argv[i+1])
+
     def setup_args(self):
         self.argument_map={}
-        for arg in self.arguments:
+        for arg in self.arguments + self.global_arguments:
             self.argument_map[arg.name] = arg
         parser = argparse.ArgumentParser(description=self.description,prog="%s %s"%(sys.argv[0], self.command_name()))
-        for arg in self.arguments:
+        for arg in self.arguments + self.global_arguments:
             parser.add_argument(*("--"+arg.name,"-"+arg.switch),**{"type":arg.type,"help":arg.prompt})
         return parser
 
@@ -103,7 +117,7 @@ class Command():
 
     def prompt_all_args(self):
         """prompt for the values of all outstanding arguments"""
-        for arg in self.arguments:
+        for arg in self.arguments + self.global_arguments:
                 self.cond_prompt_arg(arg.name)
 
     def action(self):

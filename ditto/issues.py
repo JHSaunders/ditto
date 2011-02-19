@@ -6,6 +6,11 @@ from datetime import datetime
 
 warnings.simplefilter('ignore')
 
+_issues_config_dir = None
+def set_issues_config_dir(issues_config_dir):
+    global _issues_config_dir
+    _issues_config_dir = issues_config_dir
+
 def create_project(folder,project_name,username,name,email):
     config_stream = file('.issue-config.yaml', 'w')
     yaml.dump({"folder":folder,"username":username,"name":name,"email":email},config_stream,default_flow_style=False)
@@ -23,13 +28,24 @@ def create_project(folder,project_name,username,name,email):
 
 __project = None
 def get_project():
+    """issues_config_dir only necessary if get_project has not
+    been called at least once and the config file is in a non-standard
+    location"""
     global __project
+    global _issues_config_dir
     if __project == None:
-        root_dir = os.getcwd()
-        while not os.path.exists(os.path.join(root_dir,".issue-config.yaml")):
-            if len(root_dir) == 0:
-                raise Exception("Couldn't find .issue-config.yaml in %s or its parents" % root_dir)
-            root_dir = os.sep.join(root_dir.split(os.sep)[:-1])
+        if _issues_config_dir is None:
+            root_dir = os.getcwd()
+            while not os.path.exists(os.path.join(root_dir,".issue-config.yaml")):
+                if len(root_dir) == 0:
+                    raise Exception("Couldn't find .issue-config.yaml in %s or its parents" % root_dir)
+                root_dir = os.sep.join(root_dir.split(os.sep)[:-1])
+        else:
+            if not os.path.exists(_issues_config_dir):
+                raise Exception("custom _issues_config_dir not found at %s" % _issues_config_dir)
+            if not os.path.exists(os.path.join(_issues_config_dir, ".issue-config.yaml")):
+                raise Exception("custom issues_config file not found in %s" % _issues_config_dir)
+            root_dir = _issues_config_dir
         __project = Project(root_dir)
     return __project
 
