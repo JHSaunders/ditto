@@ -309,13 +309,14 @@ class ReleaseSummaryCommand(Command):
 
         print("===== Issues =====")
         print("==== Summary ====")
-        print "^ID ^Title ^ Status ^ Estimated Time(h) ^Actual Time(h) ^ "
+        print "^ID ^Title ^ Status ^ Owner ^ Estimated Time(h) ^Actual Time(h) ^ "
         for issue in project._issues:
             if self.argument_values.release == issue.release:
-                print("|[[#{id}|{id}]] |{title} |{status} | {estimate} | {actual} |".format(id=issue.name,
+                print("|[[#{id}|{id}]] |{title} |{owner} |{status} | {estimate} | {actual} |".format(id=issue.name,
                     title=issue.title,
                     status = issue.state,
                     estimate = issue.estimate,
+                    owner = issue.owner,
                     actual = issue.actual if issue.state == "closed" else " "))
         
         print("==== Descriptions ====")
@@ -327,6 +328,8 @@ class ReleaseSummaryCommand(Command):
                     print("")
                     print(issue.description)
                 print("")
+                if issue.owner !="":
+                    print("  * Owner:{0}".format(issue.owner))
                 print("  * Status:{0}".format(issue.state))
                 print("  * Estimate:{0}".format(issue.estimate))
                 if issue.state == "closed":
