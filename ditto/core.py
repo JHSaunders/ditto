@@ -4,6 +4,7 @@ import issues
 import tempfile
 import subprocess
 import os
+import sys
 
 @register_command
 class Init(Command):
@@ -377,6 +378,18 @@ class ListReleasesCommand(Command):
         project = issues.get_project()
         for release in project.releases:
             print release.name()
+
+@register_command
+class GetGuidForId(Command):
+    name = "get-guid"
+    description= "Gets the guid for a specific issue id."
+    arguments = [ Arg("name","n","Issue to get guid for",issues.issue_name), ]
+    
+    def action(self):
+        project = issues.get_project()
+        self.prompt_all_args()
+        issue = project.get_issue(self.argument_values.name)
+        sys.stdout.write(issue._guid)
 
 def main():
     execute_command()
