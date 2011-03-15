@@ -309,7 +309,7 @@ class ReleaseSummaryCommand(Command):
 
         print("===== Issues =====")
         print("==== Summary ====")
-        print "^ID ^Title ^ Status ^ Owner ^ Estimated Time(h) ^Actual Time(h) ^ "
+        print "^ID ^Title ^ Owner ^ Status ^ Estimated Time(h) ^Actual Time(h) ^ "
         for issue in project._issues:
             if self.argument_values.release == issue.release:
                 print("|[[#{id}|{id}]] |{title} |{owner} |{status} | {estimate} | {actual} |".format(id=issue.name,
