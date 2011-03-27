@@ -80,7 +80,7 @@ class CloseIssueCommand(Command):
     description= "Close an issue."
     arguments = [
         Arg("name","n","Issue to close",issues.issue_name),
-        Arg("time","t","Actual time to complete issue(h)",float),
+        Arg("time","t","Actual time to complete issue(decimal or time format)",str),
         ]
 
     def action(self):
@@ -88,8 +88,18 @@ class CloseIssueCommand(Command):
         self.prompt_all_args()
         issue = project.get_issue(self.argument_values.name)
         issue.set_value("state","closed")
-        issue.set_value("actual",self.argument_values.time)
+        issue.set_value("actual",self.normalize_time(self.argument_values.time))
         project.save_issue(issue)
+
+    def normalize_time(self, time):
+        """accepts times in decimal format (eg 1.5) or time format (eg
+        1:30) and returns it in decimal format"""
+        try:
+            time.index(":")
+            parts = time.split(":")
+            return "%.3f" % (float(parts[0]) + (float(parts[1]))/60)
+        except ValueError:
+            return time
 
 @register_command
 class EstimateIssueCommand(Command):
