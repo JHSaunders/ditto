@@ -42,6 +42,7 @@ class AddIssueCommand(Command):
         Arg("estimate","e","Estimated time(h)",float),
         Arg("component","c","Component",issues.component_name),
         Arg("release","r","Release",issues.release_name_or_blank),
+        Arg("owner","o","Owner",str),
         ]
 
     def action(self):
@@ -54,6 +55,7 @@ class AddIssueCommand(Command):
         issue.set_value("component",self.argument_values.component)
         issue.set_value("estimate",self.argument_values.estimate)
         issue.set_value("release",self.argument_values.release)
+        issue.set_value("owner",self.argument_values.owner)
         issue.set_value("state","open")
         project.save_issue(issue)
 
@@ -241,7 +243,8 @@ class DescribeReleaseCommand(Command):
 class ListIssuesCommand(Command):
     name = "list"
     description= "List all issues."
-
+    alternate_names = ["ls"]
+    
     arguments = [
         Arg("display","d","issues to display (a) all,(o) open,(c) closed"),
         Arg("release","r","show only issues for a release",issues.release_name_or_blank),
@@ -268,7 +271,7 @@ class ReleaseSummaryCommand(Command):
     description= "Create a summary of a release."
 
     arguments = [
-        Arg("release","r","show only issues for a release",issues.release_name_or_blank),
+        Arg("release","r","show only issues for a release(or part of the name)",issues.release_name_or_blank),
         Arg("format","f","output format",ValueList("dokuwiki","console"),default = "console"),
         ]
 
@@ -283,6 +286,7 @@ class ReleaseSummaryCommand(Command):
         project = issues.get_project()
         if self.argument_values.release!="":
             release = project.get_release(self.argument_values.release)
+            release_name = release.name()
             print("====== {0} ======".format(release.name()))
 
             stats = release.statistics()
@@ -305,13 +309,14 @@ class ReleaseSummaryCommand(Command):
             print("===== Description =====")
             print(release.description)
         else:
+            release_name = ""
             print("====== {0} ======".format("Unassigned Issues"))
 
         print("===== Issues =====")
         print("==== Summary ====")
         print "^ID ^Title ^ Owner ^ Status ^ Estimated Time(h) ^Actual Time(h) ^ "
         for issue in project._issues:
-            if self.argument_values.release == issue.release:
+            if release_name == issue.release:
                 print("|[[#{id}|{id}]] |{title} |{owner} |{status} | {estimate} | {actual} |".format(id=issue.name,
                     title=issue.title,
                     status = issue.state,
@@ -321,7 +326,7 @@ class ReleaseSummaryCommand(Command):
         
         print("==== Descriptions ====")
         for issue in project._issues:
-            if self.argument_values.release == issue.release:
+            if release_name == issue.release:
                 print("==={id}===".format(id=issue.name))
                 print("**{title}**".format(title = issue.title))
                 if issue.description!="":
@@ -339,12 +344,15 @@ class ReleaseSummaryCommand(Command):
         project = issues.get_project()
         if self.argument_values.release!="":
             release = project.get_release(self.argument_values.release)
+            release_name = release.name()
+            
             print("Release: {0}".format(release.name()))
         else:
+            release_name = ""
             print("{0}".format("Unassigned Issues:"))
 
         for issue in project._issues:
-            if self.argument_values.release == issue.release:
+            if release_name == issue.release:
                 print(issue.summary())
 
         if self.argument_values.release!="":
@@ -366,20 +374,39 @@ class ReleaseSummaryCommand(Command):
                 print("  * Estimated Remaining Work: {0}h".format(stats[1]))
                 print("  * Probable Remaining Time: {0}h".format(stats[3]))
 
-            
+def try_int(s):
+    "Convert to integer if possible."
+    try: return int(s)
+    except: return s
+
+def natsort_key(s):
+    "Used internally to get a tuple by which s is sorted."
+    import re
+    return map(try_int, re.findall(r'(\d+|\D+)', s))
+
 @register_command
 class ListReleasesCommand(Command):
     name = "list-releases"
     description= "Lists the releases."
+    alternate_names = ["lsr"]
     arguments = [ ]
-
+    
     def action(self):
         project = issues.get_project()
-        for release in project.releases:
+        releases = [r for r in project.releases]
+        def get_name(r):
+            return natsort_key(r.name())
+        releases.sort(key=get_name)
+        for release in releases:
             print release.name()
 
 def main():
     execute_command()
 
+#def main():
+#    import cProfile
+#    cProfile.run('submain()', '/home/james/dittoprof')
+    
+
 if __name__ == "__main__":
-    main()
+    main()  

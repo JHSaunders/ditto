@@ -1,4 +1,4 @@
-import yaml
+import json
 import uuid
 import os
 import warnings
@@ -7,15 +7,15 @@ from datetime import datetime
 warnings.simplefilter('ignore')
 
 def create_project(folder,project_name,username,name,email):
-    config_stream = file('.issue-config.yaml', 'w')
-    yaml.dump({"folder":folder,"username":username,"name":name,"email":email},config_stream,default_flow_style=False)
+    config_stream = file('.issue-config.json', 'w')
+    json.dump({"folder":folder,"username":username,"name":name,"email":email},config_stream,default_flow_style=False)
     config_stream.close()
 
     try:
         os.mkdir(folder)
         print("New folder %s created for issues"%folder)
-        project_stream = file('%s/project.yaml'%folder, 'w')
-        yaml.dump({"project_name":project_name,"started":datetime.now()},project_stream,default_flow_style=False)
+        project_stream = file('%s/project.json'%folder, 'w')
+        json.dump({"project_name":project_name,"started":datetime.now()},project_stream,default_flow_style=False)
         project_stream.close()
         print("New project started")
     except Exception as e:
@@ -26,50 +26,53 @@ def get_project():
     global __project
     if __project == None:
         root_dir = os.getcwd()
-        while not os.path.exists(os.path.join(root_dir,".issue-config.yaml")):
+        while not os.path.exists(os.path.join(root_dir,".issue-config.json")):
+            if root_dir =="":
+                print ".issue-config.json not found, are you sure you are in the correct folder"
+                exit()
             root_dir = os.sep.join(root_dir.split(os.sep)[:-1])
         __project = Project(root_dir)
     return __project
 
 class Project:
     def __init__(self,root_folder):
-        config = yaml.load(file(os.path.join(root_folder,".issue-config.yaml")))
+        config = json.load(file(os.path.join(root_folder,".issue-config.json")))
         self._config = config
         self._root_folder = root_folder
         self._issue_folder = config["folder"]
-        self._yaml = yaml.load(file(os.path.join(root_folder,self._issue_folder,"project.yaml")))
+        self._json = json.load(file(os.path.join(root_folder,self._issue_folder,"project.json")))
         self._issues = []
         self._releases = []
         for fname in os.listdir(os.path.join(root_folder,self._issue_folder)):
-            if fname.startswith("issue-") and fname.endswith(".yaml"):
+            if fname.startswith("issue-") and fname.endswith(".json"):
                 guid = fname[6:-5]
                 self._issues.append(Issue(project=self
                     ,guid=guid
                     ,filename = os.path.join(root_folder,self._issue_folder,fname)
-                    ,yaml=yaml.load(file(os.path.join(root_folder,self._issue_folder,fname)))))
-            elif fname.startswith("release-") and fname.endswith(".yaml"):
+                    ,json=json.load(file(os.path.join(root_folder,self._issue_folder,fname)))))
+            elif fname.startswith("release-") and fname.endswith(".json"):
                 guid = fname[8:-5]
                 release = Release(project=self
                     ,guid=guid
-                    ,yaml=yaml.load(file(os.path.join(root_folder,self._issue_folder,fname))))
+                    ,json=json.load(file(os.path.join(root_folder,self._issue_folder,fname))))
                 self._releases.append(release)
 
         self._issues.sort(key=lambda issue: issue.get_creation_date())
         self.set_issue_names()
 
     def save_project(self):
-        yaml.dump(self._yaml,
-            file(os.path.join(self._root_folder,self._issue_folder,"project.yaml"),'w'),
+        json.dump(self._json,
+            file(os.path.join(self._root_folder,self._issue_folder,"project.json"),'w'),
             default_flow_style=False)
 
     def save_issue(self,issue):
-        yaml.dump(issue._yaml,
-            file(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".yaml"),'w'),
+        json.dump(issue._json,
+            file(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".json"),'w'),
             default_flow_style=False)
 
     def save_release(self,release):
-        yaml.dump(release._yaml,
-            file(os.path.join(self._root_folder,self._issue_folder,"release-"+release._guid+".yaml"),'w'),
+        json.dump(release._json,
+            file(os.path.join(self._root_folder,self._issue_folder,"release-"+release._guid+".json"),'w'),
             default_flow_style=False)
 
     def set_issue_names(self):
@@ -83,19 +86,19 @@ class Project:
 
     def add_issue(self):
         guid = str(uuid.uuid1())
-        issue = Issue(project=self,guid=guid,yaml=[],filename="")
+        issue = Issue(project=self,guid=guid,json=[],filename="")
         self._issues.append(issue)
         return issue
 
     def add_release(self):
         guid = str(uuid.uuid1())
-        release = Release(project=self,guid=guid,yaml={})
+        release = Release(project=self,guid=guid,json={})
         self._releases.append(release)
         return release
 
     def remove_issue(self,issue):
         try:
-            os.remove(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".yaml"))
+            os.remove(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".json"))
         finally:
             self._issues.remove(issue)
 
@@ -103,21 +106,21 @@ class Project:
         return "%s (%s) <%s>"%(self._config["username"],self._config["name"],self._config["email"])
 
     def get_value(self,key):
-        return self._yaml.get(key,None)
+        return self._json.get(key,None)
 
     def set_value(self,key,value):
-        self._yaml[key] = value
+        self._json[key] = value
 
     def append_value(self,key,value):
-        if key not in self._yaml:
-            self._yaml[key] = []
-        self._yaml[key].append(value)
+        if key not in self._json:
+            self._json[key] = []
+        self._json[key].append(value)
 
     def attribute_contains(self,key,value):
-        if key not in self._yaml:
+        if key not in self._json:
             return False
         else:
-            return value in self._yaml[key]
+            return value in self._json[key]
 
     def get_issue(self,name):
         for issue in self._issues:
@@ -127,7 +130,7 @@ class Project:
 
     def get_release(self,name):
         for release in self._releases:
-            if release.name()==name:
+            if release.name().find(name)!=-1:
                 return release
         return None
 
@@ -149,7 +152,7 @@ def issue_name(name):
 class Issue:
     def __init__(self, *args, **kwargs):
         self._guid = kwargs["guid"]
-        self._yaml = kwargs["yaml"]
+        self._json = kwargs["json"]
         self._project = kwargs["project"]
         self._filename = kwargs["filename"]
         self.properties = {
@@ -162,11 +165,11 @@ class Issue:
     
 
     def set_value(self,key,value):
-        self._yaml.append({"key":key,"value":str(value),"user":self._project.user_string(),"timestamp":datetime.now()})
+        self._json.append({"key":key,"value":str(value),"user":self._project.user_string(),"timestamp":datetime.now()})
 
     def get_value(self,key,default=None):
         value=default
-        for entry in self._yaml:
+        for entry in self._json:
             if entry["key"] == key:
                 value = entry["value"]
         return value
@@ -175,7 +178,7 @@ class Issue:
         return self.name
 
     def get_creation_date(self):
-        return self._yaml[0]["timestamp"]
+        return self._json[0]["timestamp"]
 
     @property
     def state(self):
@@ -252,7 +255,7 @@ def not_release_name(name):
 class Release:
     def __init__(self, *args, **kwargs):
         self._guid = kwargs["guid"]
-        self._yaml = kwargs["yaml"]
+        self._json = kwargs["json"]
         self._project = kwargs["project"]        
         self.properties = {
             "name": str,
@@ -260,13 +263,13 @@ class Release:
             }
         
     def name(self):
-        return self._yaml["name"]
+        return self._json["name"]
 
     def get_value(self,key,default=None):
-        return self._yaml.get(key,default)
+        return self._json.get(key,default)
 
     def set_value(self,key,value):
-        self._yaml[key] = value
+        self._json[key] = value
 
     def issues(self):
         return filter(lambda x: self.name() == x.release,get_project()._issues)
