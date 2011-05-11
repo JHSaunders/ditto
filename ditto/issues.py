@@ -146,6 +146,9 @@ class Project:
                 return release
         return None
 
+    def get_root_folder(self):
+        return self._root_folder
+    
     @property
     def releases(self):
         return self._releases

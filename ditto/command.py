@@ -117,8 +117,17 @@ class Command():
 
     def prompt_all_args(self):
         """prompt for the values of all outstanding arguments"""
+
+        #A little hacky. ok, very hacky. because we need the project
+        #before we even get this far, the command line argument for
+        #specifying issues_config_dir is already resolved or can be
+        #figured out, but we need to trick the command line argument
+        #prompter that's it was specified.
+        project = issues.get_project()
+        self.argument_values.issues_config_dir = project.get_root_folder()
+
         for arg in self.arguments + self.global_arguments:
-                self.cond_prompt_arg(arg.name)
+            self.cond_prompt_arg(arg.name)
 
     def action(self):
         print "no action"
