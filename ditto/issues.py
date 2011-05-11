@@ -8,14 +8,14 @@ warnings.simplefilter('ignore')
 
 def create_project(folder,project_name,username,name,email):
     config_stream = file('.issue-config.json', 'w')
-    json.dump({"folder":folder,"username":username,"name":name,"email":email},config_stream,default_flow_style=False)
+    json.dump({"folder":folder,"username":username,"name":name,"email":email},config_stream)
     config_stream.close()
 
     try:
         os.mkdir(folder)
         print("New folder %s created for issues"%folder)
         project_stream = file('%s/project.json'%folder, 'w')
-        json.dump({"project_name":project_name,"started":datetime.now()},project_stream,default_flow_style=False)
+        json.dump({"project_name":project_name,"started":datetime.now()},project_stream)
         project_stream.close()
         print("New project started")
     except Exception as e:
@@ -62,18 +62,15 @@ class Project:
 
     def save_project(self):
         json.dump(self._json,
-            file(os.path.join(self._root_folder,self._issue_folder,"project.json"),'w'),
-            default_flow_style=False)
+            file(os.path.join(self._root_folder,self._issue_folder,"project.json"),'w'))
 
     def save_issue(self,issue):
         json.dump(issue._json,
-            file(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".json"),'w'),
-            default_flow_style=False)
+            file(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".json"),'w'))
 
     def save_release(self,release):
         json.dump(release._json,
-            file(os.path.join(self._root_folder,self._issue_folder,"release-"+release._guid+".json"),'w'),
-            default_flow_style=False)
+            file(os.path.join(self._root_folder,self._issue_folder,"release-"+release._guid+".json"),'w'))
 
     def set_issue_names(self):
         component_counts = {}
