@@ -6,16 +6,22 @@ from datetime import datetime
 
 warnings.simplefilter('ignore')
 
+class DateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)
+
 def create_project(folder,project_name,username,name,email):
     config_stream = file('.issue-config.json', 'w')
-    json.dump({"folder":folder,"username":username,"name":name,"email":email},config_stream)
+    json.dump({"folder":folder,"username":username,"name":name,"email":email},config_stream,cls = DateEncoder)
     config_stream.close()
 
     try:
         os.mkdir(folder)
         print("New folder %s created for issues"%folder)
         project_stream = file('%s/project.json'%folder, 'w')
-        json.dump({"project_name":project_name,"started":datetime.now()},project_stream)
+        json.dump({"project_name":project_name,"started":datetime.now()},project_stream,cls = DateEncoder)
         project_stream.close()
         print("New project started")
     except Exception as e:
@@ -62,15 +68,15 @@ class Project:
 
     def save_project(self):
         json.dump(self._json,
-            file(os.path.join(self._root_folder,self._issue_folder,"project.json"),'w'))
+            file(os.path.join(self._root_folder,self._issue_folder,"project.json"),'w'),cls = DateEncoder)
 
     def save_issue(self,issue):
         json.dump(issue._json,
-            file(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".json"),'w'))
+            file(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".json"),'w'),cls = DateEncoder)
 
     def save_release(self,release):
         json.dump(release._json,
-            file(os.path.join(self._root_folder,self._issue_folder,"release-"+release._guid+".json"),'w'))
+            file(os.path.join(self._root_folder,self._issue_folder,"release-"+release._guid+".json"),'w'),cls = DateEncoder)
 
     def set_issue_names(self):
         component_counts = {}
