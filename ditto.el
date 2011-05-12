@@ -24,7 +24,7 @@ must set it from minibuffer."
   :group 'ditto)
 
 ;; Constant variables
-(defconst ditto-issue-id-regex "^...\\([^ ]*\\).*$"
+(defconst ditto-issue-id-regex "^[^m]*m\\([^\t]*\\).*$"
   "Regex for issue id.")
 
 ;;(defconst ditto-issue-id-regex-in-issue "^Issue \\([^ ]*-[^ ]*\\)"
@@ -86,6 +86,7 @@ must set it from minibuffer."
 (defun ditto-todo ()
   "Show current todo."
   (interactive)
+  (server-start)
   (ditto-call-process "list-releases" nil "pop"))
 
 (defun ditto-todo-org ()
@@ -125,9 +126,9 @@ must set it from minibuffer."
   "edit the issue in plain text"
   (interactive)
   (let ((issue-guid nil))
-    (setq issue-guid (ditto-get-issue-id 1))
+    (setq issue-guid (ditto-get-issue-guid 1))
     (if issue-guid
-	(find-file-other-window (concat ditto-last-visited-issue-directory "/issue-" issue-guid ".yaml"))
+	(find-file-other-window (concat ditto-last-visited-issue-directory "/.issues/issue-" issue-guid ".json"))
       (error "Issue id not found"))))
 
 (defun ditto-show-issue()
@@ -148,13 +149,32 @@ must set it from minibuffer."
         (ditto-call-process "show" issue-id "switch")
       (error "Issue id not found"))))
 
+
+(defun ditto-remove ()
+  "Delete an issue"
+  (interactive)
+  (let ((issue-id nil))
+    (setq issue-id (ditto-get-issue-id 1))
+    (if issue-id
+        (ditto-call-process "remove" (concat "-n " issue-id) "switch")
+      (error "Issue id not found"))))
+
 (defun ditto-assign ()
   "Assign issue to a release."
   (interactive)
   (let ((issue-id nil))
     (setq issue-id (ditto-get-issue-id 1))
     (if issue-id
-        (ditto-call-process "assign" issue-id "switch")
+        (ditto-call-process "assign-release" (concat "-i" issue-id) "switch")
+      (error "Issue id not found"))))
+
+(defun ditto-owner ()
+  "Set the owner of an issue"
+  (interactive)
+  (let ((issue-id nil))
+    (setq issue-id (ditto-get-issue-id 1))
+    (if issue-id
+        (ditto-call-process "owner" (concat "-i" issue-id) "switch")
       (error "Issue id not found"))))
 
 (defun ditto-assignfeature ()
@@ -199,7 +219,7 @@ must set it from minibuffer."
   (let ((issue-id nil))
     (setq issue-id (ditto-get-issue-id 1))
     (if issue-id
-        (ditto-call-process "close" issue-id "switch")
+        (ditto-call-process "close" (concat "-n " issue-id) "switch")
       (error "Issue id not found"))))
 
 (defun ditto-claim ()
@@ -241,13 +261,12 @@ must set it from minibuffer."
 
 (defun ditto-get-issue-id (n)
   "works in the todo view or in the issue view"
-  (or (ditto-extract-thing-at-point ditto-issue-id-regex n) 
-      (ditto-extract-thing-at-point ditto-issue-id-regex-in-issue n)))
+  (ditto-extract-thing-at-point ditto-issue-id-regex 1))
 
 (defun ditto-get-issue-guid (n)
-  "often the guid is the same as the id"
-  (or (ditto-extract-thing-at-point ditto-issue-guid-regex n)
-      (ditto-extract-thing-at-point ditto-issue-id-regex-in-issue n)))
+  "works in the todo view or in the issue view"
+  (let ((issue-id (ditto-extract-thing-at-point ditto-issue-id-regex 1)))
+    (shell-command-to-string (ditto-build-command "get-guid" (concat "-n" issue-id)))))
 
 (defun ditto-extract-thing-at-point (regex n)
   (save-excursion
@@ -261,12 +280,16 @@ must set it from minibuffer."
   (let ((prev_line_number (line-number-at-pos)))
     (cond ((string= (buffer-name) "*ditto-todo*")
 	   (ditto-call-process "todo" nil "switch" prev_line_number))
-	  ((string= (buffer-name) "*ditto-time-release*")
-	   (ditto-call-process "time-release" nil "switch" prev_line_number))
-	  ((string= (buffer-name) "*ditto-status*")
-	   (ditto-call-process "status" nil "switch" prev_line_number))
-	  ((string= (buffer-name) "*ditto-log*")
-	   (ditto-call-process "log" nil "switch" prev_line_number)))))
+	  ((string= (buffer-name) "*ditto-release-summary*")
+	   ;;(ditto-call-process "release-summary" nil "switch" prev_line_number))
+	   (ditto-call-process "release-summary" (concat "-r" release-name) "switch"))
+	  ;; ((string= (buffer-name) "*ditto-time-release*")
+	  ;;  (ditto-call-process "time-release" nil "switch" prev_line_number))
+	  ;; ((string= (buffer-name) "*ditto-status*")
+	  ;;  (ditto-call-process "status" nil "switch" prev_line_number))
+	  ;; ((string= (buffer-name) "*ditto-log*")
+	  ;;  (ditto-call-process "log" nil "switch" prev_line_number)))))
+	  )))
 
 
 (defun ditto-close-buffer ()
@@ -366,28 +389,32 @@ must set it from minibuffer."
 
 (define-key ditto-mode-map "r"    'ditto-show-release)
 (define-key ditto-mode-map "s"    'ditto-show-issue)
+(define-key ditto-mode-map "E"    'ditto-edit)
+(define-key ditto-mode-map "A"    'ditto-add)
+(define-key ditto-mode-map "c"    'ditto-close)
+(define-key ditto-mode-map "g"    'ditto-reload)
+(define-key ditto-mode-map "d"    'ditto-remove)
 ;; (define-key ditto-mode-map "t"    'ditto-todo)
 ;; (define-key ditto-mode-map "o"    'ditto-todo-org)
 ;; (define-key ditto-mode-map "O"    'ditto-todo-org_no_time)
 ;; (define-key ditto-mode-map "s"    'ditto-show)
 ;; (define-key ditto-mode-map "\C-m" 'ditto-show)
-;; (define-key ditto-mode-map "A"    'ditto-add)
-;; (define-key ditto-mode-map "a"    'ditto-assign)
+
+(define-key ditto-mode-map "a"    'ditto-assign)
+(define-key ditto-mode-map "o"    'ditto-owner)
 ;; (define-key ditto-mode-map "w"    'ditto-assignfeature)
 ;; (define-key ditto-mode-map "U"    'ditto-unassign)
 ;; (define-key ditto-mode-map "D"    'ditto-drop)
 ;; (define-key ditto-mode-map "e"    'ditto-edit)
 ;; (define-key ditto-mode-map "+"    'ditto-comment)
-;; (define-key ditto-mode-map "c"    'ditto-close)
+
 ;; (define-key ditto-mode-map "l"    'ditto-claim)
 ;; (define-key ditto-mode-map "r"    'ditto-release)
 ;; (define-key ditto-mode-map "Q"    'ditto-add-feature)
 ;; (define-key ditto-mode-map "\C-Q" 'ditto-release-feature)
-;; (define-key ditto-mode-map "g"    'ditto-reload)
 ;; (define-key ditto-mode-map "q"    'ditto-close-buffer)
 ;; (define-key ditto-mode-map "u"    'ditto-order-up)
 ;; (define-key ditto-mode-map "d"    'ditto-order-down)
-;; (define-key ditto-mode-map "E"    'ditto-edit)
 
 ;; Face
 (defface ditto-issue-id-face
