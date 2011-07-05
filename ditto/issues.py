@@ -243,6 +243,12 @@ class Issue:
         else:
             return "\033[31m{0}\t(c):{1:<70} {2} e:{3}h\ta:{4}h\033[0m".format(self.name,self.title, owner, self.estimate,self.actual)
 
+    def detailed_summary(self):
+        summary = self.summary()
+        summary += "\n%s " % self.description
+        return summary
+
+
 def issue_state_name(name):
     if name not in ["open","closed"]:
         raise ValueError()

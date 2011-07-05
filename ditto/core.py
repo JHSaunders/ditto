@@ -137,6 +137,20 @@ class OpenIssueCommand(Command):
         project.save_issue(issue)
 
 @register_command
+class ShowIssueCommand(Command):
+    name = "show-issue"
+    description = "Show issue "
+    arguments = [
+        Arg("name", "n", "Issue to show: ", issues.issue_name),
+        ]
+
+    def action(self):
+        project = issues.get_project()
+        self.cond_prompt_arg("name")
+        issue = project.get_issue(self.argument_values.name)
+        print(issue.detailed_summary())
+
+@register_command
 class EditIssueCommand(Command):
 
     name = "edit-issue"

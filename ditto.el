@@ -131,24 +131,14 @@ must set it from minibuffer."
 	(find-file-other-window (concat ditto-last-visited-issue-directory "/.issues/issue-" issue-guid ".json"))
       (error "Issue id not found"))))
 
-(defun ditto-show-issue()
-  "Show issue details."
-  (interactive)
-  (let ((issue-id nil))
-    (setq issue-id (ditto-get-issue-id 1))
-    (if issue-id
-        (ditto-call-process "show" issue-id "switch")
-      (error "Issue id not found"))))
-
 (defun ditto-show ()
   "Show issue detale."
   (interactive)
   (let ((issue-id nil))
     (setq issue-id (ditto-get-issue-id 1))
     (if issue-id
-        (ditto-call-process "show" issue-id "switch")
+        (ditto-call-process "show-issue" (concat "-n " issue-id) "switch")
       (error "Issue id not found"))))
-
 
 (defun ditto-remove ()
   "Delete an issue"
@@ -390,6 +380,7 @@ must set it from minibuffer."
 (define-key ditto-mode-map "r"    'ditto-show-release)
 (define-key ditto-mode-map "s"    'ditto-show-issue)
 (define-key ditto-mode-map "E"    'ditto-edit)
+(define-key ditto-mode-map "s"    'ditto-show)
 (define-key ditto-mode-map "A"    'ditto-add)
 (define-key ditto-mode-map "c"    'ditto-close)
 (define-key ditto-mode-map "g"    'ditto-reload)
