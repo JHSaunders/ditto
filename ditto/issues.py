@@ -100,7 +100,31 @@ class Project:
             if component not in component_counts:
                 component_counts[component]=0
             component_counts[component]+=1
-            issue.name = "%s%s"%(component[0:2],component_counts[component])
+
+            issue.name = issue.get_value("master_name")
+            if issue.name is None:
+                issue.name = "t_%s%s"%(component[0:2],component_counts[component])
+            
+    def set_issue_master_names(self):
+        component_counts = {}
+
+        if "is_master_name_server" not in self._config or self._config["is_master_name_server"] != "yes":
+            raise Exception("You are not a master name server, don't call this function!")
+
+        if "master_name_server" not in self._config or self._config["master_name_server"] is None:
+            raise Exception("Badly configured master name server, missing config option [master_name_server]")
+
+        def generate_master_name(x):
+            return "ditto%d" % x
+
+        for issue in self._issues:
+            if issue.get_value("master_name") is None:
+                master_name_candidate_id = len(self._issues)
+                while self.is_issue_name(generate_master_name(master_name_candidate_id)):
+                    master_name_candidate_id += 1
+                issue.set_value("master_name", generate_master_name(master_name_candidate_id))
+                issue.set_value("master_name_server", self._config["master_name_server"])
+                self.save_issue(issue)
 
     def add_issue(self):
         guid = str(uuid.uuid1())

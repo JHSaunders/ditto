@@ -437,6 +437,16 @@ class GetGuidForId(Command):
         issue = project.get_issue(self.argument_values.name)
         sys.stdout.write(issue._guid)
 
+@register_command
+class NumberIssues(Command):
+    name = "number-issues"
+    description= "System function: Sets unique numbers for all issues ONLY runnable by the master numbering server"
+    arguments = []
+
+    def action(self):
+        project = issues.get_project()
+        project.set_issue_master_names()
+
 def main():
     execute_command()
 
