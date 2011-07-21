@@ -40,8 +40,7 @@ class AddIssueCommand(Command):
     arguments = [
         Arg("title","t","Issue title"),
         Arg("description","d","Issue description",large=True),
-        Arg("estimate","e","Estimated time(h)",float),
-        Arg("component","c","Component",issues.component_name),
+        Arg("estimate","e","Estimated time(h)",float),        
         Arg("release","r","Release",issues.release_name_or_blank),
         Arg("owner","o","Owner",str),
         ]
@@ -52,8 +51,7 @@ class AddIssueCommand(Command):
 
         issue = project.add_issue()
         issue.set_value("title",self.argument_values.title)
-        issue.set_value("description",self.argument_values.description)
-        issue.set_value("component",self.argument_values.component)
+        issue.set_value("description",self.argument_values.description)        
         issue.set_value("estimate",self.argument_values.estimate)
         issue.set_value("release",self.argument_values.release)
         issue.set_value("owner",self.argument_values.owner)
@@ -171,20 +169,6 @@ class EditIssueCommand(Command):
 
         subprocess.call([editor, file_name])
 
-@register_command
-class AddComponentCommand(Command):
-
-    name = "add-component"
-    description= "Add a new component."
-    arguments = [
-        Arg("name","n","Component name",issues.not_component_name),
-        ]
-
-    def action(self):
-        project = issues.get_project()
-        self.prompt_all_args()
-        project.append_value("components",self.argument_values.name)
-        project.save_project()
 
 @register_command
 class AddReleaseCommand(Command):

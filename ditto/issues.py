@@ -94,19 +94,14 @@ class Project:
             file(os.path.join(self._root_folder,self._issue_folder,"release-"+release._guid+".json"),'w'),cls = DateEncoder)
 
     def set_issue_names(self):
-        component_counts = {}
-        for issue in self._issues:
-            component = issue.get_value("component")
-            if component not in component_counts:
-                component_counts[component]=0
-            component_counts[component]+=1
-
+        ctr = 0
+        for issue in self._issues:            
+            ctr += 1
             issue.name = issue.get_value("master_name")
             if issue.name is None:
-                issue.name = "t_%s%s"%(component[0:2],component_counts[component])
+                issue.name = "t_%s"%(ctr,)
             
     def set_issue_master_names(self):
-        component_counts = {}
 
         if "is_master_name_server" not in self._config or self._config["is_master_name_server"] != "yes":
             raise Exception("You are not a master name server, don't call this function!")
@@ -115,17 +110,18 @@ class Project:
             raise Exception("Badly configured master name server, missing config option [master_name_server]")
 
         def generate_master_name(x):
-            return "ditto%d" % x
+            return "%d" % x
 
+        master_name_candidate_id = len(self._issues)
         for issue in self._issues:
             if issue.get_value("master_name") is None or not issue.get_value("master_name_server") == self._config["master_name_server"]:
-                master_name_candidate_id = len(self._issues)
                 while self.is_issue_name(generate_master_name(master_name_candidate_id)):
                     master_name_candidate_id += 1
                 issue.set_value("master_name", generate_master_name(master_name_candidate_id))
                 issue.set_value("master_name_server", self._config["master_name_server"])
                 issue.name = issue.get_value("master_name")
                 self.save_issue(issue)
+                master_name_candidate_id += 1
 
     def add_issue(self):
         guid = str(uuid.uuid1())
@@ -204,8 +200,7 @@ class Issue:
         self.properties = {
             "title": str,
             "description": str,
-            "release": release_name,
-            "component": component_name,
+            "release": release_name,            
             "state": issue_state_name,
             }
     
@@ -252,11 +247,6 @@ class Issue:
         return release if get_project().is_release_name(release) else ""
 
     @property
-    def component(self):
-        component = self.get_value("component",default="")
-        return component if get_project().attribute_contains("component",component) else ""
-
-    @property
     def owner(self):
         owner = self.get_value("owner",default="")
         return owner
@@ -276,16 +266,6 @@ class Issue:
 
 def issue_state_name(name):
     if name not in ["open","closed"]:
-        raise ValueError()
-    return name
-    
-def component_name(name):
-    if not get_project().attribute_contains("components",name):
-        raise ValueError()
-    return name
-
-def not_component_name(name):
-    if get_project().attribute_contains("components",name):
         raise ValueError()
     return name
 
