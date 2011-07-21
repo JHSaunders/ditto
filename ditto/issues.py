@@ -6,6 +6,11 @@ from datetime import datetime
 
 warnings.simplefilter('ignore')
 
+_issues_config_dir = None
+def set_issues_config_dir(issues_config_dir):
+    global _issues_config_dir
+    _issues_config_dir = issues_config_dir
+
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime):
@@ -29,14 +34,24 @@ def create_project(folder,project_name,username,name,email):
 
 __project = None
 def get_project():
+    """issues_config_dir only necessary if get_project has not
+    been called at least once and the config file is in a non-standard
+    location"""
     global __project
+    global _issues_config_dir
     if __project == None:
-        root_dir = os.getcwd()
-        while not os.path.exists(os.path.join(root_dir,".issue-config.json")):
-            if root_dir =="":
-                print ".issue-config.json not found, are you sure you are in the correct folder"
-                exit()
-            root_dir = os.sep.join(root_dir.split(os.sep)[:-1])
+        if _issues_config_dir is None:
+            root_dir = os.getcwd()
+            while not os.path.exists(os.path.join(root_dir,".issue-config.json")):
+                if len(root_dir) == 0:
+                    raise Exception("Couldn't find .issue-config.json in %s or its parents" % root_dir)
+                root_dir = os.sep.join(root_dir.split(os.sep)[:-1])
+        else:
+            if not os.path.exists(_issues_config_dir):
+                raise Exception("custom _issues_config_dir not found at %s" % _issues_config_dir)
+            if not os.path.exists(os.path.join(_issues_config_dir, ".issue-config.json")):
+                raise Exception("custom issues_config file not found in %s" % _issues_config_dir)
+            root_dir = _issues_config_dir
         __project = Project(root_dir)
     return __project
 
@@ -85,7 +100,31 @@ class Project:
             if component not in component_counts:
                 component_counts[component]=0
             component_counts[component]+=1
-            issue.name = "%s%s"%(component[0:2],component_counts[component])
+
+            issue.name = issue.get_value("master_name")
+            if issue.name is None:
+                issue.name = "t_%s%s"%(component[0:2],component_counts[component])
+            
+    def set_issue_master_names(self):
+        component_counts = {}
+
+        if "is_master_name_server" not in self._config or self._config["is_master_name_server"] != "yes":
+            raise Exception("You are not a master name server, don't call this function!")
+
+        if "master_name_server" not in self._config or self._config["master_name_server"] is None:
+            raise Exception("Badly configured master name server, missing config option [master_name_server]")
+
+        def generate_master_name(x):
+            return "ditto%d" % x
+
+        for issue in self._issues:
+            if issue.get_value("master_name") is None:
+                master_name_candidate_id = len(self._issues)
+                while self.is_issue_name(generate_master_name(master_name_candidate_id)):
+                    master_name_candidate_id += 1
+                issue.set_value("master_name", generate_master_name(master_name_candidate_id))
+                issue.set_value("master_name_server", self._config["master_name_server"])
+                self.save_issue(issue)
 
     def add_issue(self):
         guid = str(uuid.uuid1())
@@ -137,6 +176,9 @@ class Project:
                 return release
         return None
 
+    def get_root_folder(self):
+        return self._root_folder
+    
     @property
     def releases(self):
         return self._releases
@@ -224,6 +266,12 @@ class Issue:
             return "\033[0m{0}\t(o):{1:<70} {2} e:{3}h\033[0m".format(self.name,self.title, owner, self.estimate)
         else:
             return "\033[31m{0}\t(c):{1:<70} {2} e:{3}h\ta:{4}h\033[0m".format(self.name,self.title, owner, self.estimate,self.actual)
+
+    def detailed_summary(self):
+        summary = self.summary()
+        summary += "\n%s " % self.description
+        return summary
+
 
 def issue_state_name(name):
     if name not in ["open","closed"]:

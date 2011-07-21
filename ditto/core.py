@@ -4,6 +4,7 @@ import issues
 import tempfile
 import subprocess
 import os
+import sys
 
 @register_command
 class Init(Command):
@@ -81,7 +82,7 @@ class CloseIssueCommand(Command):
     description= "Close an issue."
     arguments = [
         Arg("name","n","Issue to close",issues.issue_name),
-        Arg("time","t","Actual time to complete issue(h)",float),
+        Arg("time","t","Actual time to complete issue(decimal or time format)",str),
         ]
 
     def action(self):
@@ -89,8 +90,18 @@ class CloseIssueCommand(Command):
         self.prompt_all_args()
         issue = project.get_issue(self.argument_values.name)
         issue.set_value("state","closed")
-        issue.set_value("actual",self.argument_values.time)
+        issue.set_value("actual",self.normalize_time(self.argument_values.time))
         project.save_issue(issue)
+
+    def normalize_time(self, time):
+        """accepts times in decimal format (eg 1.5) or time format (eg
+        1:30) and returns it in decimal format"""
+        try:
+            time.index(":")
+            parts = time.split(":")
+            return "%.3f" % (float(parts[0]) + (float(parts[1]))/60)
+        except ValueError:
+            return time
 
 @register_command
 class EstimateIssueCommand(Command):
@@ -124,6 +135,20 @@ class OpenIssueCommand(Command):
         issue = project.get_issue(self.argument_values.name)
         issue.set_value("state","open")
         project.save_issue(issue)
+
+@register_command
+class ShowIssueCommand(Command):
+    name = "show-issue"
+    description = "Show issue "
+    arguments = [
+        Arg("name", "n", "Issue to show: ", issues.issue_name),
+        ]
+
+    def action(self):
+        project = issues.get_project()
+        self.cond_prompt_arg("name")
+        issue = project.get_issue(self.argument_values.name)
+        print(issue.detailed_summary())
 
 @register_command
 class EditIssueCommand(Command):
@@ -399,6 +424,28 @@ class ListReleasesCommand(Command):
         releases.sort(key=get_name)
         for release in releases:
             print release.name()
+
+@register_command
+class GetGuidForId(Command):
+    name = "get-guid"
+    description= "Gets the guid for a specific issue id."
+    arguments = [ Arg("name","n","Issue to get guid for",issues.issue_name), ]
+    
+    def action(self):
+        project = issues.get_project()
+        self.prompt_all_args()
+        issue = project.get_issue(self.argument_values.name)
+        sys.stdout.write(issue._guid)
+
+@register_command
+class NumberIssues(Command):
+    name = "number-issues"
+    description= "System function: Sets unique numbers for all issues ONLY runnable by the master numbering server"
+    arguments = []
+
+    def action(self):
+        project = issues.get_project()
+        project.set_issue_master_names()
 
 def main():
     execute_command()

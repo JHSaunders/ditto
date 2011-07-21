@@ -35,3 +35,4 @@ The important ones you will need are:
 * ditto open: Reopens a closed issue
 * ditto list: Lists issues
 * ditto release-summary: Creates a summary of a release either for the console or in dokuwiki syntax, this can be used to automatically publish to dokuwiki site on a git post-recieve hook.
+
