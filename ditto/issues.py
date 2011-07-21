@@ -83,15 +83,15 @@ class Project:
 
     def save_project(self):
         json.dump(self._json,
-            file(os.path.join(self._root_folder,self._issue_folder,"project.json"),'w'),cls = DateEncoder)
+            file(os.path.join(self._root_folder,self._issue_folder,"project.json"),'w'),cls = DateEncoder,indent=4)
 
     def save_issue(self,issue):
         json.dump(issue._json,
-            file(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".json"),'w'),cls = DateEncoder)
+            file(os.path.join(self._root_folder,self._issue_folder,"issue-"+issue._guid+".json"),'w'),cls = DateEncoder,indent=4)
 
     def save_release(self,release):
         json.dump(release._json,
-            file(os.path.join(self._root_folder,self._issue_folder,"release-"+release._guid+".json"),'w'),cls = DateEncoder)
+            file(os.path.join(self._root_folder,self._issue_folder,"release-"+release._guid+".json"),'w'),cls = DateEncoder,indent=4)
 
     def set_issue_names(self):
         ctr = 0
