@@ -118,12 +118,13 @@ class Project:
             return "ditto%d" % x
 
         for issue in self._issues:
-            if issue.get_value("master_name") is None:
+            if issue.get_value("master_name") is None or not issue.get_value("master_name_server") == self._config["master_name_server"]:
                 master_name_candidate_id = len(self._issues)
                 while self.is_issue_name(generate_master_name(master_name_candidate_id)):
                     master_name_candidate_id += 1
                 issue.set_value("master_name", generate_master_name(master_name_candidate_id))
                 issue.set_value("master_name_server", self._config["master_name_server"])
+                issue.name = issue.get_value("master_name")
                 self.save_issue(issue)
 
     def add_issue(self):
